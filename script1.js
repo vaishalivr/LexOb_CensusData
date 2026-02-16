@@ -55,6 +55,19 @@ const color = d3
 
 const polygonPath = (poly) => `M${poly.join("L")}Z`;
 
+const tooltip = d3
+  .select("body")
+  .append("div")
+  .attr("class", "tooltip")
+  .style("position", "absolute")
+  .style("pointer-events", "none")
+  .style("background", "#fff")
+  .style("color", "#111")
+  .style("padding", "6px 8px")
+  .style("border-radius", "4px")
+  .style("font-size", "12px")
+  .style("opacity", 0);
+
 svg1
   .selectAll("path")
   .data(leaves)
@@ -62,7 +75,18 @@ svg1
   .attr("d", (d) => polygonPath(d.polygon))
   .attr("fill", (d) => color(d.data.name))
   .attr("stroke", "#fff")
-  .attr("stroke-width", 3);
+  .attr("stroke-width", 3)
+  .on("mouseover", function (event, d) {
+    tooltip.style("opacity", 1).text(`${d.data.name}: ${d.data.value}`);
+  })
+  .on("mousemove", function (event) {
+    tooltip
+      .style("left", `${event.pageX + 10}px`)
+      .style("top", `${event.pageY + 10}px`);
+  })
+  .on("mouseout", function () {
+    tooltip.style("opacity", 0);
+  });
 
 // Circular border around the treemap (inset to avoid clipping)
 svg1
