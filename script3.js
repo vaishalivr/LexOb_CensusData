@@ -27,6 +27,19 @@ const svg3 = container
   .attr("width", width)
   .attr("height", height);
 
+const tooltip = d3
+  .select("body")
+  .append("div")
+  .attr("class", "tooltip")
+  .style("position", "absolute")
+  .style("pointer-events", "none")
+  .style("background", "#fff")
+  .style("color", "#111")
+  .style("padding", "6px 8px")
+  .style("border-radius", "4px")
+  .style("font-size", "12px")
+  .style("opacity", 0);
+
 const root = d3
   .hierarchy({ name: "root", children: data3 })
   .sum((d) => d.value || 0)
@@ -38,6 +51,7 @@ d3
   .padding(2)(root);
 
 const nodes = root.leaves();
+const total = root.value || 1;
 
 svg3
   .selectAll("rect")
@@ -47,7 +61,18 @@ svg3
   .attr("y", (d) => d.y0 + inset)
   .attr("width", (d) => d.x1 - d.x0)
   .attr("height", (d) => d.y1 - d.y0)
-  .attr("fill", "#1f77b4");
+  .attr("fill", "#1f77b4")
+  .on("mouseover", function (event, d) {
+    tooltip.style("opacity", 1).text(`${d.data.name}: ${d.data.value}`);
+  })
+  .on("mousemove", function (event) {
+    tooltip
+      .style("left", `${event.pageX + 10}px`)
+      .style("top", `${event.pageY + 10}px`);
+  })
+  .on("mouseout", function () {
+    tooltip.style("opacity", 0);
+  });
 
 svg3
   .selectAll("text")
@@ -57,7 +82,20 @@ svg3
   .attr("y", (d) => d.y0 + inset + 14)
   .attr("fill", "#ffffff")
   .attr("font-size", 10)
-  .text((d) => d.data.name);
+  .each(function (d) {
+    const text = d3.select(this);
+    const pct = ((d.value / total) * 100).toFixed(1);
+    text
+      .append("tspan")
+      .attr("x", text.attr("x"))
+      .attr("dy", "0em")
+      .text(d.data.name);
+    text
+      .append("tspan")
+      .attr("x", text.attr("x"))
+      .attr("dy", "1.1em")
+      .text(`${pct}%`);
+  });
 
 // Outer border with a 6px gap from treemap
 svg3
