@@ -4,24 +4,27 @@ import { voronoiTreemap } from "d3-voronoi-treemap";
 const data2 = {
   name: "lex_population",
   children: [
-    { name: "under 5 years", value: 10 },
-    { name: "5 to 9 years", value: 20 },
-    { name: "10 to 14 years", value: 15 },
-    { name: "15 to 19 years", value: 25 },
-    { name: "20 to 24 years", value: 30 },
-    { name: "25 to 34 years", value: 20 },
-    { name: "35 to 44 years", value: 5 },
-    { name: "45 to 54 years", value: 10 },
-    { name: "55 to 59 years", value: 10 },
-    { name: "60 to 64 years", value: 5 },
-    { name: "65 to 74 years", value: 15 },
-    { name: "75 to 84 years", value: 10 },
-    { name: "85 years and over", value: 5 },
+    { name: "-5 ", value: 1286 },
+    { name: "5 to 9 ", value: 2296 },
+    { name: "10 to 14 ", value: 3151 },
+    { name: "15 to 19 ", value: 2534 },
+    { name: "20 to 24 ", value: 1026 },
+    { name: "25 to 34 ", value: 1450 },
+    { name: "35 to 44 ", value: 3865 },
+    { name: "45 to 54 ", value: 6760 },
+    { name: "55 to 59 ", value: 2434 },
+    { name: "60 to 64 ", value: 2063 },
+    { name: "65 to 74 ", value: 4231 },
+    { name: "75 to 84 ", value: 2131 },
+    { name: "85+", value: 1068 },
   ],
 };
 
-const width = 300;
-const height = 300;
+const width = 400;
+const height = 400;
+const strokeWidth = 3;
+const borderGap = 6;
+const circleInset = 10;
 
 const svg2 = d3
   .select("#chart2")
@@ -29,13 +32,13 @@ const svg2 = d3
   .attr("width", width)
   .attr("height", height);
 
-const rect2 = svg2
-  .append("rect")
-  .attr("width", width)
-  .attr("height", height)
-  .attr("fill", "#f0f0f0")
-  .attr("stroke", "#ccc")
-  .attr("stroke-width", 1);
+// const rect2 = svg2
+//   .append("rect")
+//   .attr("width", width)
+//   .attr("height", height)
+//   .attr("fill", "#f0f0f0")
+//   .attr("stroke", "#ccc")
+//   .attr("stroke-width", 1);
 
 const root2 = d3
   .hierarchy(data2)
@@ -46,12 +49,22 @@ console.log(root2);
 const clipPolygon = d3
   .range(0, Math.PI * 2, (Math.PI * 2) / 120)
   .map((angle) => [
-    width / 2 + (Math.min(width, height) / 2) * Math.cos(angle),
-    height / 2 + (Math.min(width, height) / 2) * Math.sin(angle),
+    width / 2 +
+      (Math.min(width, height) / 2 -
+        strokeWidth / 2 -
+        borderGap -
+        circleInset) *
+        Math.cos(angle),
+    height / 2 +
+      (Math.min(width, height) / 2 -
+        strokeWidth / 2 -
+        borderGap -
+        circleInset) *
+        Math.sin(angle),
   ]);
-console.log(clipPolygon);
 
-const layout2 = voronoiTreemap().clip(clipPolygon);
+const rng = d3.randomLcg(0.5);
+const layout2 = voronoiTreemap().clip(clipPolygon).prng(rng);
 layout2(root2);
 
 const leaves2 = root2.leaves();
@@ -59,7 +72,7 @@ const leaves2 = root2.leaves();
 const color = d3
   .scaleOrdinal()
   .domain(leaves2.map((d) => d.data.name))
-  .range(["#0f6b6f", "#f06b42"]);
+  .range(d3.schemeTableau10);
 
 const polygonPath = (poly) => `M${poly.join("L")}Z`;
 
@@ -81,5 +94,30 @@ svg2
   .attr("text-anchor", "middle")
   .attr("dominant-baseline", "middle")
   .attr("fill", "#fff")
-  .attr("font-size", 9)
-  .text((d) => d.data.name);
+  .attr("font-size", 12)
+  .each(function (d) {
+    const text = d3.select(this);
+    text
+      .append("tspan")
+      .attr("x", text.attr("x"))
+      .attr("dy", "-0.3em")
+      .text(d.data.name);
+    text
+      .append("tspan")
+      .attr("x", text.attr("x"))
+      .attr("dy", "1.1em")
+      .text("years");
+  });
+
+// Circular border around the treemap (inset to avoid clipping)
+svg2
+  .append("circle")
+  .attr("cx", width / 2)
+  .attr("cy", height / 2)
+  .attr(
+    "r",
+    Math.min(width, height) / 2 - strokeWidth / 2 + borderGap - circleInset,
+  )
+  .attr("fill", "none")
+  .attr("stroke", "#333")
+  .attr("stroke-width", strokeWidth);
