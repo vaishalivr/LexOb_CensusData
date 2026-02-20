@@ -9,8 +9,8 @@ const data1 = {
   ],
 };
 
-const width = 200;
-const height = 200;
+const width = 400;
+const height = 400;
 const strokeWidth = 3;
 const borderGap = 6;
 const circleInset = 10;
@@ -51,7 +51,7 @@ const leaves = root.leaves();
 const color = d3
   .scaleOrdinal()
   .domain(leaves.map((d) => d.data.name))
-  .range(["#0f6b6f", "#f06b42"]);
+  .range(d3.schemeTableau10);
 
 const polygonPath = (poly) => `M${poly.join("L")}Z`;
 
@@ -111,4 +111,5 @@ svg1
   .attr("dominant-baseline", "middle")
   .attr("fill", "#fff")
   .attr("font-size", 14)
+  .style("pointer-events", "none")
   .text((d) => d.data.name);
