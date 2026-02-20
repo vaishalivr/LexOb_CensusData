@@ -4,8 +4,8 @@ import { voronoiTreemap } from "d3-voronoi-treemap";
 const data1 = {
   name: "lex_population",
   children: [
-    { name: "Males", value: 16443 },
-    { name: "Females", value: 17852 },
+    { name: "Males", value: 16443, percent: 48.1 },
+    { name: "Females", value: 17852, percent: 51.9 },
   ],
 };
 
@@ -63,6 +63,7 @@ const tooltip = d3
   .style("pointer-events", "none")
   .style("background", "#fff")
   .style("color", "#111")
+  .style("border", "2px solid #111")
   .style("padding", "6px 8px")
   .style("border-radius", "4px")
   .style("font-size", "12px")
@@ -77,7 +78,34 @@ svg1
   .attr("stroke", "#fff")
   .attr("stroke-width", 3)
   .on("mouseover", function (event, d) {
-    tooltip.style("opacity", 1).text(`${d.data.name}: ${d.data.value}`);
+    const isMale = d.data.name === "Males";
+    const isFemale = d.data.name === "Females";
+    const maleUnderline = isMale
+      ? `border-bottom: 3px solid ${color("Males")};`
+      : "";
+    const femaleUnderline = isFemale
+      ? `border-bottom: 3px solid ${color("Females")};`
+      : "";
+    const total = data1.children.reduce((sum, item) => sum + item.value, 0);
+    tooltip.style("opacity", 1).html(`
+        <table style="border-collapse: separate; border-spacing: 0; width: 160px;">
+          <tr>
+            <td style="padding: 3px 9px; border-right: 1px dotted #999; border-bottom: 1px dotted #999; ${maleUnderline}">Males</td>
+            <td style="padding: 3px 9px; border-right: 1px dotted #999; border-bottom: 1px dotted #999; ${maleUnderline}">16443</td>
+            <td style="padding: 3px 9px; border-bottom: 1px dotted #999; ${maleUnderline}">48.1%</td>
+          </tr>
+          <tr>
+            <td style="padding: 3px 9px; border-right: 1px dotted #999; ${femaleUnderline}">Females</td>
+            <td style="padding: 3px 9px; border-right: 1px dotted #999; ${femaleUnderline}">17852</td>
+            <td style="padding: 3px 9px; ${femaleUnderline}">51.9%</td>
+          </tr>
+          <tr>
+            <td style="padding: 3px 9px; border-right: 1px dotted #999; border-top: 1px solid #999;">Total</td>
+            <td style="padding: 3px 9px; border-right: 1px dotted #999; border-top: 1px solid #999;">${total}</td>
+            <td style="padding: 3px 9px; border-top: 1px solid #999;"></td>
+          </tr>
+        </table>
+      `);
   })
   .on("mousemove", function (event) {
     tooltip
@@ -88,7 +116,6 @@ svg1
     tooltip.style("opacity", 0);
   });
 
-// Circular border around the treemap (inset to avoid clipping)
 svg1
   .append("circle")
   .attr("cx", width / 2)
@@ -101,15 +128,20 @@ svg1
   .attr("stroke", "#333")
   .attr("stroke-width", strokeWidth);
 
-svg1
+const labels = svg1
   .selectAll("text")
   .data(leaves)
   .join("text")
-  .attr("x", (d) => d3.polygonCentroid(d.polygon)[0])
-  .attr("y", (d) => d3.polygonCentroid(d.polygon)[1])
   .attr("text-anchor", "middle")
   .attr("dominant-baseline", "middle")
   .attr("fill", "#fff")
   .attr("font-size", 14)
   .style("pointer-events", "none")
   .text((d) => d.data.name);
+
+labels
+  .attr("x", (d) => {
+    d._centroid = d._centroid || d3.polygonCentroid(d.polygon);
+    return d._centroid[0];
+  })
+  .attr("y", (d) => d._centroid[1]);
