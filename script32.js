@@ -2,21 +2,18 @@ import * as d3 from "d3";
 import { voronoiTreemap } from "d3-voronoi-treemap";
 
 const data2 = {
-  name: "lex_population",
+  name: "lex_population_by_income",
   children: [
-    { name: "-5 ", value: 1286 },
-    { name: "5 to 9 ", value: 2296 },
-    { name: "10 to 14 ", value: 3151 },
-    { name: "15 to 19 ", value: 2534 },
-    { name: "20 to 24 ", value: 1026 },
-    { name: "25 to 34 ", value: 1450 },
-    { name: "35 to 44 ", value: 3865 },
-    { name: "45 to 54 ", value: 6760 },
-    { name: "55 to 59 ", value: 2434 },
-    { name: "60 to 64 ", value: 2063 },
-    { name: "65 to 74 ", value: 4231 },
-    { name: "75 to 84 ", value: 2131 },
-    { name: "85+", value: 1068 },
+    { name: "-$10k", value: 405 },
+    { name: "$10k to $15k", value: 220 },
+    { name: "$15k to $25k", value: 312 },
+    { name: "$25k to $35k", value: 327 },
+    { name: "$35k to $50k", value: 354 },
+    { name: "$50k to $75k", value: 461 },
+    { name: "$75k to $100k", value: 557 },
+    { name: "$100k to $150k", value: 1314 },
+    { name: "$150k to $200k", value: 1497 },
+    { name: "$200k or more", value: 7030 },
   ],
 };
 
@@ -27,7 +24,7 @@ const borderGap = 6;
 const circleInset = 10;
 
 const svg2 = d3
-  .select("#chart2")
+  .select("#chart32")
   .attr("viewBox", `0 0 ${width} ${height}`)
   .attr("width", width)
   .attr("height", height);
@@ -89,9 +86,7 @@ svg2
   .attr("stroke", "#fff")
   .attr("stroke-width", 3)
   .on("mouseover", function (event, d) {
-    tooltip
-      .style("opacity", 1)
-      .text(`${d.data.name} years: ${d.data.value} people`);
+    tooltip.style("opacity", 1).text(`${d.data.name}: ${d.data.value} people`);
   })
   .on("mousemove", function (event) {
     tooltip
@@ -115,16 +110,70 @@ svg2
   .style("pointer-events", "none")
   .each(function (d) {
     const text = d3.select(this);
-    text
-      .append("tspan")
-      .attr("x", text.attr("x"))
-      .attr("dy", "-0.3em")
-      .text(d.data.name);
-    text
-      .append("tspan")
-      .attr("x", text.attr("x"))
-      .attr("dy", "1.1em")
-      .text("years");
+    const xs = d.polygon.map((p) => p[0]);
+    const ys = d.polygon.map((p) => p[1]);
+    const maxWidth = Math.max(...xs) - Math.min(...xs) - 8;
+    const lineHeight = 1.1;
+
+    text.text(null);
+
+    const name = d.data.name;
+    const toMatch = name.match(/^(.*)\s+to\s+(.*)$/i);
+    if (toMatch) {
+      const line1 = toMatch[1].trim();
+      const line2 = `to ${toMatch[2].trim()}`;
+      text
+        .append("tspan")
+        .attr("x", text.attr("x"))
+        .attr("dy", "0em")
+        .text(line1);
+      text
+        .append("tspan")
+        .attr("x", text.attr("x"))
+        .attr("dy", `${lineHeight}em`)
+        .text(line2);
+    } else {
+      const words = name.split(/\s+/);
+      let line = [];
+      let tspan = text
+        .append("tspan")
+        .attr("x", text.attr("x"))
+        .attr("dy", "0em");
+
+      for (const word of words) {
+        line.push(word);
+        tspan.text(line.join(" "));
+        if (tspan.node().getComputedTextLength() > maxWidth) {
+          line.pop();
+          tspan.text(line.join(" "));
+          line = [word];
+          tspan = text
+            .append("tspan")
+            .attr("x", text.attr("x"))
+            .attr("dy", `${lineHeight}em`)
+            .text(word);
+        }
+      }
+    }
+
+    const bbox = this.getBBox();
+    const pad = 2;
+    const x0 = bbox.x - pad;
+    const y0 = bbox.y - pad;
+    const x1 = bbox.x + bbox.width + pad;
+    const y1 = bbox.y + bbox.height + pad;
+    const points = [
+      [x0, y0],
+      [x1, y0],
+      [x0, y1],
+      [x1, y1],
+      [(x0 + x1) / 2, y0],
+      [(x0 + x1) / 2, y1],
+      [x0, (y0 + y1) / 2],
+      [x1, (y0 + y1) / 2],
+    ];
+    const fits = points.every((pt) => d3.polygonContains(d.polygon, pt));
+    if (!fits) text.remove();
   });
 
 // Circular border around the treemap (inset to avoid clipping)

@@ -2,21 +2,17 @@ import * as d3 from "d3";
 import { voronoiTreemap } from "d3-voronoi-treemap";
 
 const data2 = {
-  name: "lex_population",
+  name: "lex_housing_units",
   children: [
-    { name: "-5 ", value: 1286 },
-    { name: "5 to 9 ", value: 2296 },
-    { name: "10 to 14 ", value: 3151 },
-    { name: "15 to 19 ", value: 2534 },
-    { name: "20 to 24 ", value: 1026 },
-    { name: "25 to 34 ", value: 1450 },
-    { name: "35 to 44 ", value: 3865 },
-    { name: "45 to 54 ", value: 6760 },
-    { name: "55 to 59 ", value: 2434 },
-    { name: "60 to 64 ", value: 2063 },
-    { name: "65 to 74 ", value: 4231 },
-    { name: "75 to 84 ", value: 2131 },
-    { name: "85+", value: 1068 },
+    { name: "One unit detached", value: 9394 },
+    { name: "One unit attached", value: 1138 },
+    { name: "2 units", value: 267 },
+    { name: "3 or 4 units", value: 320 },
+    { name: "5 to 9 units", value: 250 },
+    { name: "10 to 19 units", value: 488 },
+    { name: "20+ units", value: 897 },
+    { name: "Mobile home", value: 0 },
+    { name: "RV etc.", value: 0 },
   ],
 };
 
@@ -27,7 +23,7 @@ const borderGap = 6;
 const circleInset = 10;
 
 const svg2 = d3
-  .select("#chart2")
+  .select("#chart42")
   .attr("viewBox", `0 0 ${width} ${height}`)
   .attr("width", width)
   .attr("height", height);
@@ -89,9 +85,7 @@ svg2
   .attr("stroke", "#fff")
   .attr("stroke-width", 3)
   .on("mouseover", function (event, d) {
-    tooltip
-      .style("opacity", 1)
-      .text(`${d.data.name} years: ${d.data.value} people`);
+    tooltip.style("opacity", 1).text(`${d.data.name}: ${d.data.value} `);
   })
   .on("mousemove", function (event) {
     tooltip
@@ -115,16 +109,33 @@ svg2
   .style("pointer-events", "none")
   .each(function (d) {
     const text = d3.select(this);
+    const name = d.data.name;
+    const hasUnits = /\bunits\b/i.test(name);
+    const firstLine = hasUnits ? name.replace(/\bunits\b/i, "").trim() : name;
+
     text
       .append("tspan")
       .attr("x", text.attr("x"))
-      .attr("dy", "-0.3em")
-      .text(d.data.name);
-    text
-      .append("tspan")
-      .attr("x", text.attr("x"))
-      .attr("dy", "1.1em")
-      .text("years");
+      .attr("dy", hasUnits ? "-0.4em" : "0em")
+      .text(firstLine);
+
+    if (hasUnits) {
+      text
+        .append("tspan")
+        .attr("x", text.attr("x"))
+        .attr("dy", "1.1em")
+        .text("units");
+    }
+
+    const bbox = this.getBBox();
+    const corners = [
+      [bbox.x, bbox.y],
+      [bbox.x + bbox.width, bbox.y],
+      [bbox.x, bbox.y + bbox.height],
+      [bbox.x + bbox.width, bbox.y + bbox.height],
+    ];
+    const fits = corners.every((pt) => d3.polygonContains(d.polygon, pt));
+    if (!fits) text.remove();
   });
 
 // Circular border around the treemap (inset to avoid clipping)
