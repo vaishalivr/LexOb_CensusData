@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { voronoiTreemap } from "d3-voronoi-treemap";
 
-const data2 = {
+const data4 = {
   name: "lex_housing_units",
   children: [
     { name: "One unit detached", value: 9394 },
@@ -29,7 +29,7 @@ const svg2 = d3
   .attr("height", height);
 
 const root2 = d3
-  .hierarchy(data2)
+  .hierarchy(data4)
   .sum((d) => d.value || 0)
   .sort((a, b) => b.value - a.value);
 
@@ -63,6 +63,8 @@ const color = d3
 
 const polygonPath = (poly) => `M${poly.join("L")}Z`;
 
+const total = data4.children.reduce((sum, item) => sum + item.value, 0);
+
 const tooltip = d3
   .select("body")
   .append("div")
@@ -71,10 +73,23 @@ const tooltip = d3
   .style("pointer-events", "none")
   .style("background", "white")
   .style("color", "#111")
+  .style("border", "2px solid #111")
   .style("padding", "6px 8px")
-  .style("border-radius", "3px")
+  .style("border-radius", "4px")
   .style("font-size", "12px")
   .style("opacity", 0);
+
+if (!document.getElementById("tooltip-highlight-style")) {
+  const styleEl = document.createElement("style");
+  styleEl.id = "tooltip-highlight-style";
+  styleEl.textContent = `
+    @keyframes tooltipHighlightSweep {
+      from { background-size: 0% 100%; }
+      to { background-size: 100% 100%; }
+    }
+  `;
+  document.head.appendChild(styleEl);
+}
 
 svg2
   .selectAll("path")
@@ -85,7 +100,42 @@ svg2
   .attr("stroke", "#fff")
   .attr("stroke-width", 3)
   .on("mouseover", function (event, d) {
-    tooltip.style("opacity", 1).text(`${d.data.name}: ${d.data.value} `);
+    const rows = data4.children
+      .map((item, idx, arr) => {
+        const isHovered = item.name === d.data.name;
+        const c = d3.color(color(item.name));
+        const highlight = isHovered
+          ? `background-image: linear-gradient(90deg, rgba(${c.r}, ${c.g}, ${c.b}, 0.5) 0%, rgba(${c.r}, ${c.g}, ${c.b}, 0.5) 100%); background-repeat: no-repeat; background-size: 0% 100%; animation: tooltipHighlightSweep 450ms ease-out forwards; color: #fff;`
+          : "";
+        const percent = total ? ((item.value / total) * 100).toFixed(1) : "0.0";
+        const isLast = idx === arr.length - 1;
+        const bottom = isLast ? "" : "border-bottom: 1px dotted #999;";
+        const cellRight = `padding: 3px 9px; border-right: 1px dotted #999; ${bottom} ${highlight}`;
+        const cell = `padding: 3px 9px; ${bottom} ${highlight}`;
+        return `
+          <tr>
+            <td style="${cellRight}">${item.name}</td>
+            <td style="${cellRight}">${item.value}</td>
+            <td style="${cell}">${percent}%</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const totalRow = `
+      <tr>
+        <td style="padding: 3px 9px; border-right: 1px dotted #999; border-top: 1px solid #999;">Total</td>
+        <td style="padding: 3px 9px; border-right: 1px dotted #999; border-top: 1px solid #999;">${total}</td>
+        <td style="padding: 3px 9px; border-top: 1px solid #999;"></td>
+      </tr>
+    `;
+
+    tooltip.style("opacity", 1).html(`
+      <table style="border-collapse: separate; border-spacing: 0;">
+        ${rows}
+        ${totalRow}
+      </table>
+    `);
   })
   .on("mousemove", function (event) {
     tooltip
