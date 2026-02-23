@@ -2,9 +2,9 @@ import * as d3 from "d3";
 import { voronoiTreemap } from "d3-voronoi-treemap";
 
 const data2 = {
-  name: "lex_population",
+  name: "lex_population_by_age",
   children: [
-    { name: "-5 ", value: 1286 },
+    { name: "under 5 ", value: 1286 },
     { name: "5 to 9 ", value: 2296 },
     { name: "10 to 14 ", value: 3151 },
     { name: "15 to 19 ", value: 2534 },
@@ -67,6 +67,8 @@ const color = d3
 
 const polygonPath = (poly) => `M${poly.join("L")}Z`;
 
+const total = data2.children.reduce((sum, item) => sum + item.value, 0);
+
 const tooltip = d3
   .select("body")
   .append("div")
@@ -75,10 +77,23 @@ const tooltip = d3
   .style("pointer-events", "none")
   .style("background", "white")
   .style("color", "#111")
+  .style("border", "2px solid #111")
   .style("padding", "6px 8px")
-  .style("border-radius", "3px")
+  .style("border-radius", "4px")
   .style("font-size", "12px")
   .style("opacity", 0);
+
+if (!document.getElementById("tooltip-highlight-style")) {
+  const styleEl = document.createElement("style");
+  styleEl.id = "tooltip-highlight-style";
+  styleEl.textContent = `
+    @keyframes tooltipHighlightSweep {
+      from { background-size: 0% 100%; }
+      to { background-size: 100% 100%; }
+    }
+  `;
+  document.head.appendChild(styleEl);
+}
 
 svg2
   .selectAll("path")
@@ -89,9 +104,42 @@ svg2
   .attr("stroke", "#fff")
   .attr("stroke-width", 3)
   .on("mouseover", function (event, d) {
-    tooltip
-      .style("opacity", 1)
-      .text(`${d.data.name} years: ${d.data.value} people`);
+    const rows = data2.children
+      .map((item, idx, arr) => {
+        const isHovered = item.name === d.data.name;
+        const c = d3.color(color(item.name));
+        const highlight = isHovered
+          ? `background-image: linear-gradient(90deg, rgba(${c.r}, ${c.g}, ${c.b}, 0.5) 0%, rgba(${c.r}, ${c.g}, ${c.b}, 0.5) 100%); background-repeat: no-repeat; background-size: 0% 100%; animation: tooltipHighlightSweep 450ms ease-out forwards; color: #fff;`
+          : "";
+        const percent = total ? ((item.value / total) * 100).toFixed(1) : "0.0";
+        const isLast = idx === arr.length - 1;
+        const bottom = isLast ? "" : "border-bottom: 1px dotted #999;";
+        const cellRight = `padding: 3px 9px; border-right: 1px dotted #999; ${bottom} ${highlight}`;
+        const cell = `padding: 3px 9px; ${bottom} ${highlight}`;
+        return `
+          <tr>
+            <td style="${cellRight}">${item.name}</td>
+            <td style="${cellRight}">${item.value}</td>
+            <td style="${cell}">${percent}%</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const totalRow = `
+      <tr>
+        <td style="padding: 3px 9px; border-right: 1px dotted #999; border-top: 1px solid #999;">Total</td>
+        <td style="padding: 3px 9px; border-right: 1px dotted #999; border-top: 1px solid #999;">${total}</td>
+        <td style="padding: 3px 9px; border-top: 1px solid #999;"></td>
+      </tr>
+    `;
+
+    tooltip.style("opacity", 1).html(`
+      <table style="border-collapse: separate; border-spacing: 0;">
+        ${rows}
+        ${totalRow}
+      </table>
+    `);
   })
   .on("mousemove", function (event) {
     tooltip
@@ -127,7 +175,6 @@ svg2
       .text("years");
   });
 
-// Circular border around the treemap (inset to avoid clipping)
 svg2
   .append("circle")
   .attr("cx", width / 2)

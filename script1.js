@@ -8,6 +8,9 @@ const data1 = {
     { name: "Females", value: 17852, percent: 51.9 },
   ],
 };
+const maleData = data1.children.find((c) => c.name === "Males");
+const femaleData = data1.children.find((c) => c.name === "Females");
+const total = data1.children.reduce((sum, item) => sum + item.value, 0);
 
 const width = 400;
 const height = 400;
@@ -51,7 +54,7 @@ const leaves = root.leaves();
 const color = d3
   .scaleOrdinal()
   .domain(leaves.map((d) => d.data.name))
-  .range(d3.schemeTableau10);
+  .range(["#4E79A7", "#F28E2B"]);
 
 const polygonPath = (poly) => `M${poly.join("L")}Z`;
 
@@ -69,6 +72,18 @@ const tooltip = d3
   .style("font-size", "12px")
   .style("opacity", 0);
 
+if (!document.getElementById("tooltip-highlight-style")) {
+  const styleEl = document.createElement("style");
+  styleEl.id = "tooltip-highlight-style";
+  styleEl.textContent = `
+    @keyframes tooltipHighlightSweep {
+      from { background-size: 0% 100%; }
+      to { background-size: 100% 100%; }
+    }
+  `;
+  document.head.appendChild(styleEl);
+}
+
 svg1
   .selectAll("path")
   .data(leaves)
@@ -80,24 +95,23 @@ svg1
   .on("mouseover", function (event, d) {
     const isMale = d.data.name === "Males";
     const isFemale = d.data.name === "Females";
-    const maleUnderline = isMale
-      ? `border-bottom: 3px solid ${color("Males")};`
+    const maleHighlight = isMale
+      ? "background-image: linear-gradient(90deg, rgba(242, 142, 43, 0.5) 0%, rgba(242, 142, 43, 0.5) 100%); background-repeat: no-repeat; background-size: 0% 100%; animation: tooltipHighlightSweep 450ms ease-out forwards; color: #fff;"
       : "";
-    const femaleUnderline = isFemale
-      ? `border-bottom: 3px solid ${color("Females")};`
+    const femaleHighlight = isFemale
+      ? "background-image: linear-gradient(90deg, rgba(78, 121, 167, 0.5) 0%, rgba(78, 121, 167, 0.5) 100%); background-repeat: no-repeat; background-size: 0% 100%; animation: tooltipHighlightSweep 450ms ease-out forwards; color: #fff;"
       : "";
-    const total = data1.children.reduce((sum, item) => sum + item.value, 0);
     tooltip.style("opacity", 1).html(`
         <table style="border-collapse: separate; border-spacing: 0; width: 160px;">
           <tr>
-            <td style="padding: 3px 9px; border-right: 1px dotted #999; border-bottom: 1px dotted #999; ${maleUnderline}">Males</td>
-            <td style="padding: 3px 9px; border-right: 1px dotted #999; border-bottom: 1px dotted #999; ${maleUnderline}">16443</td>
-            <td style="padding: 3px 9px; border-bottom: 1px dotted #999; ${maleUnderline}">48.1%</td>
+            <td style="padding: 3px 9px; border-right: 1px dotted #999; border-bottom: 1px dotted #999; ${maleHighlight}">${maleData.name}</td>
+            <td style="padding: 3px 9px; border-right: 1px dotted #999; border-bottom: 1px dotted #999; ${maleHighlight}">${maleData.value}</td>
+            <td style="padding: 3px 9px; border-bottom: 1px dotted #999; ${maleHighlight}">${maleData.percent}%</td>
           </tr>
           <tr>
-            <td style="padding: 3px 9px; border-right: 1px dotted #999; ${femaleUnderline}">Females</td>
-            <td style="padding: 3px 9px; border-right: 1px dotted #999; ${femaleUnderline}">17852</td>
-            <td style="padding: 3px 9px; ${femaleUnderline}">51.9%</td>
+            <td style="padding: 3px 9px; border-right: 1px dotted #999; ${femaleHighlight}">${femaleData.name}</td>
+            <td style="padding: 3px 9px; border-right: 1px dotted #999; ${femaleHighlight}">${femaleData.value}</td>
+            <td style="padding: 3px 9px; ${femaleHighlight}">${femaleData.percent}%</td>
           </tr>
           <tr>
             <td style="padding: 3px 9px; border-right: 1px dotted #999; border-top: 1px solid #999;">Total</td>

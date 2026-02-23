@@ -1,37 +1,50 @@
 import * as d3 from "d3";
 import { voronoiTreemap } from "d3-voronoi-treemap";
 
-const data5 = {
-  name: "lex_working_population",
+const data6 = {
+  name: "lex_classification_by_race",
   children: [
     {
-      name: "Agriculture, forestry, fishing, hunting, mining",
-      value: 30,
-    },
-    { name: "Construction", value: 155 },
-    { name: "Manufacturing", value: 2314 },
-    { name: "Wholesale trade", value: 165 },
-    { name: "Retail trade", value: 795 },
-    { name: "Transportation, warehousing, utilities", value: 213 },
-    { name: "Information", value: 345 },
-    {
-      name: "Finance, insurance, real estate, rental, leasing",
-      value: 1466,
-    },
-    {
-      name: "Professional, scientific, management, administrative, waste management",
-      value: 4761,
+      name: "One Race",
+      children: [
+        { name: "[One Race] White", value: 19146 },
+        { name: "[One Race] Black or African American", value: 593 },
+        { name: "[One Race] Asian", value: 11592 },
+        { name: "[One Race] American Indian or Alaska Native", value: 15 },
+        {
+          name: "[One Race] Native Hawaiian or Other Pacific Islander",
+          value: 0,
+        },
+        { name: "[One Race] Some other race", value: 765 },
+      ],
     },
     {
-      name: "Education, health care, social assistance",
-      value: 4749,
+      name: "Two or more races",
+      children: [
+        {
+          name: "[Two or more races] White & Black or African American",
+          value: 182,
+        },
+        {
+          name: "[Two or more races] White & American Indian or Alaska Native",
+          value: 43,
+        },
+        { name: "[Two or more races] White & Asian", value: 797 },
+        { name: "[Two or more races] White and some other Race", value: 928 },
+        {
+          name: "[Two or more races] Black or African American & American Indian or Alaska Native",
+          value: 0,
+        },
+        {
+          name: "[Two or more races] Black or African American & Some other race",
+          value: 29,
+        },
+        {
+          name: "[Two or more races] Others",
+          value: 205,
+        },
+      ],
     },
-    {
-      name: "Arts, entertainment, recreation etc",
-      value: 860,
-    },
-    { name: "Other, except public administration", value: 467 },
-    { name: "Public administration", value: 305 },
   ],
 };
 
@@ -42,13 +55,13 @@ const borderGap = 6;
 const circleInset = 10;
 
 const svg2 = d3
-  .select("#chart5")
+  .select("#chart6")
   .attr("viewBox", `0 0 ${width} ${height}`)
   .attr("width", width)
   .attr("height", height);
 
 const root2 = d3
-  .hierarchy(data5)
+  .hierarchy(data6)
   .sum((d) => d.value || 0)
   .sort((a, b) => b.value - a.value);
 
@@ -82,7 +95,7 @@ const color = d3
 
 const polygonPath = (poly) => `M${poly.join("L")}Z`;
 
-const total = data5.children.reduce((sum, item) => sum + item.value, 0);
+const total = root2.value || 0;
 
 const tooltip = d3
   .select("body")
@@ -119,14 +132,28 @@ svg2
   .attr("stroke", "#fff")
   .attr("stroke-width", 3)
   .on("mouseover", function (event, d) {
-    const rows = data5.children
-      .map((item, idx, arr) => {
+    const group = d.ancestors().find((a) => a.depth === 1) || d;
+    const groupLeaves = leaves2.filter(
+      (leaf) =>
+        leaf.ancestors().find((a) => a.depth === 1)?.data.name ===
+        group.data.name,
+    );
+    const groupTotal = groupLeaves.reduce(
+      (sum, leaf) => sum + (leaf.value || 0),
+      0,
+    );
+
+    const rows = groupLeaves
+      .map((leaf, idx, arr) => {
+        const item = leaf.data;
         const isHovered = item.name === d.data.name;
         const c = d3.color(color(item.name));
         const highlight = isHovered
           ? `background-image: linear-gradient(90deg, rgba(${c.r}, ${c.g}, ${c.b}, 0.5) 0%, rgba(${c.r}, ${c.g}, ${c.b}, 0.5) 100%); background-repeat: no-repeat; background-size: 0% 100%; animation: tooltipHighlightSweep 450ms ease-out forwards; color: #fff;`
           : "";
-        const percent = total ? ((item.value / total) * 100).toFixed(1) : "0.0";
+        const percent = groupTotal
+          ? ((item.value / groupTotal) * 100).toFixed(1)
+          : "0.0";
         const isLast = idx === arr.length - 1;
         const bottom = isLast ? "" : "border-bottom: 1px dotted #999;";
         const cellRight = `padding: 3px 9px; border-right: 1px dotted #999; ${bottom} ${highlight}`;
@@ -144,7 +171,7 @@ svg2
     const totalRow = `
       <tr>
         <td style="padding: 3px 9px; border-right: 1px dotted #999; border-top: 1px solid #999;">Total</td>
-        <td style="padding: 3px 9px; border-right: 1px dotted #999; border-top: 1px solid #999;">${total}</td>
+        <td style="padding: 3px 9px; border-right: 1px dotted #999; border-top: 1px solid #999;">${groupTotal}</td>
         <td style="padding: 3px 9px; border-top: 1px solid #999;"></td>
       </tr>
     `;
