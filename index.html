@@ -8,16 +8,25 @@
     <style>
       body {
         margin: 0;
+        font-family: "Roboto", "Helvetica Neue", "sans-serif";
+      }
+
+      .page {
+        max-width: 600px;
+        margin: 0 auto;
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
-        font-family: "Roboto", "Helvetica Neue", "sans-serif";
       }
 
       .charts {
         display: flex;
         flex-direction: column;
+      }
+
+      .charts svg {
+        align-self: center;
+        display: block;
       }
 
       .chart3-spacer {
@@ -26,11 +35,6 @@
 
       /* iPad landscape and below */
       @media (max-width: 1024px) {
-        body {
-          align-items: flex-start;
-          padding: 16px;
-        }
-
         .charts {
           width: 100%;
           align-items: center;
@@ -39,14 +43,14 @@
 
       /* iPad portrait and below */
       @media (max-width: 768px) {
-        body {
+        .page {
           padding: 12px;
         }
       }
 
       /* Mobile */
       @media (max-width: 480px) {
-        body {
+        .page {
           padding: 10px;
         }
 
@@ -58,41 +62,132 @@
   </head>
 
   <body>
-    <h2>Lexington by its Numbers in 2025</h2>
+    <div class="page">
+      <h2>Lexington by its Numbers in 2025</h2>
+      <p>
+        Lexington is mostly described through its history, its schools,
+        Minuteman bikeway, MassAve and its coffee shops.
+      </p>
 
-    <div class="charts">
-      <p>Total Population broken down by gender</p>
-      <svg
-        id="chart1"
-        aria-label="Voronoi treemap showing total population by gender"
-      ></svg>
-      <p>Total Population broken down by age group</p>
-      <svg
-        id="chart2"
-        aria-label="Voronoi treemap showing total population by age group"
-      ></svg>
-      <p>Total Working Population broken down by income</p>
-      <svg
-        id="chart32"
-        aria-label="Voronoi treemap showing total working population by income"
-      ></svg>
-      <p>Population broken down by Race</p>
-      <svg
-        id="chart6"
-        aria-label="Voronoi treemap showing population by race"
-      ></svg>
-      <p>Total Housing Units</p>
-      <svg
-        id="chart42"
-        aria-label="Voronoi Treemap showing total housing units"
-      ></svg>
-      <p>Working Population broken down by Industry</p>
-      <svg
-        id="chart5"
-        aria-label="Voronoi treemap showing working population by industry"
-      ></svg>
-
-      <div class="chart3-spacer"></div>
+      <p>
+        Behind every number here is a person who we share our town with - our
+        neighbor, our child's classmate, a familiar voice at the town meeting,
+        our friend and the family down the street who turns on their porch light
+        at night.
+      </p>
+      <p>
+        This article is an attempt to describe Lexington through its numbers -
+        what its population looks like, how it works, and where it lives.
+      </p>
+      <div class="charts">
+        <h3 style="text-align: center">
+          Total Population Broken Down by Gender
+        </h3>
+        <svg
+          id="chart1"
+          aria-label="Voronoi treemap showing total population by gender"
+        ></svg>
+        <p>
+          The split between males and females is almost even close to a 50-50
+          balance suggesting that the town's demographic structure is healthy.
+          This indicates a balanced mix of household and a stable school
+          population.
+        </p>
+        <h3 style="text-align: center">
+          Total Population broken down by age group
+        </h3>
+        <svg
+          id="chart2"
+          aria-label="Voronoi treemap showing total population by age group"
+        ></svg>
+        <p>
+          The largest sector belongs to people between 45 to 54 years old. This
+          reveals a strong presence of households raising childrens. The next
+          largest sector is that of people between 65-74 years old which
+          suggests that people prefer to age in palce and may be long term home
+          owners.
+        </p>
+        <p>
+          The 20 to 24 years old is the smallest segment suggesting that people
+          tend to move away for education and early career opportunities
+          probably returning later in life to establish families of their own.
+        </p>
+        <h3 style="text-align: center">
+          Total Working Population broken down by income
+        </h3>
+        <svg
+          id="chart32"
+          aria-label="Voronoi treemap showing total working population by income"
+        ></svg>
+        <p>
+          The most important insight to draw from this chart is that 56% of
+          working population earns $200k or more. Thus the majority of
+          households are clustered at the very top of the income bracket. This
+          economic layer is well above the national and state averages. This
+          proportion of people earning between $150k to $200k and $100k to $150k
+          is also sizable.
+        </p>
+        <p>
+          This distribution can typically correlate with high home values and a
+          strong local economy.
+        </p>
+        <h3 style="text-align: center">Population broken down by Race</h3>
+        <svg
+          id="chart6"
+          aria-label="Voronoi treemap showing population by race"
+        ></svg>
+        <p>
+          The two largest groups are by far the Whites and Asians. Whites are a
+          reflective of historically white New England subarbs. But the size of
+          Asian population is particularly notable - it also forms a major
+          demographic pillar of the town.
+        </p>
+        <p>
+          It also states that the black representation is relatively smaller
+          even below the state averages.
+        </p>
+        <p>
+          The two or more races category is also not negligible. This indicates
+          intergenerational diversity, generational blending and an evolution
+          beyond single category indetity.
+        </p>
+        <h3 style="text-align: center">Total Housing Units</h3>
+        <svg
+          id="chart42"
+          aria-label="Voronoi Treemap showing total housing units"
+        ></svg>
+        <p>
+          The town primarily favours stand alone houses. This aligns strongly
+          with home owners being long-term.
+        </p>
+        <p>
+          Even though there are many apartment or multi-unit dwellings, they are
+          not very common. This suggests that entry level housing stock is
+          constrained and the density seems to be relatively low compared to
+          other urban areas.
+        </p>
+        <h3 style="text-align: center">
+          Working Population broken down by Industry
+        </h3>
+        <svg
+          id="chart5"
+          aria-label="Voronoi treemap showing working population by industry"
+        ></svg>
+        <p>
+          Lexington is a knowledge economy town with the two largest secotrs
+          alone forming the working economy of the town outpacing the
+          traditional industries such as contruction, retail and manufacturing.
+          This distribution suggests that the professional community is closely
+          tied to Boston's innovation, healthcare and education sectors. Most
+          people are likely to travel to downtown for work.
+        </p>
+        <p>
+          All these numbers taken together sketch a picture of Lexington as a
+          prosperous, knowledge-driven community with a strong emphasis on
+          long-term homeownership and a high standard of living.
+        </p>
+        <div class="chart3-spacer"></div>
+      </div>
     </div>
 
     <script type="module" src="./script1.js"></script>
